@@ -1,0 +1,153 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      --><title>face_recognition</title><meta name="generator" content="MATLAB 7.9"><meta name="date" content="2013-11-07"><meta name="m-file" content="face_recognition"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><pre class="codeinput">clc
+close <span class="string">all</span>
+
+subdim = 100 ;                                <span class="comment">% 100 is the subdim chosen. can be varied</span>
+PCA_recog(subdim);                            <span class="comment">% calling PCA_recog to create projections (pcaProj) of database images</span>
+
+load <span class="string">psi</span>;                                     <span class="comment">% mean face</span>
+load <span class="string">w</span>;                                       <span class="comment">% lower dimentional projection space</span>
+load <span class="string">pcaProj</span>;
+
+test_img_name = <span class="string">'mj2'</span> ;                         <span class="comment">% Name of the test image</span>
+thepath = <span class="string">'C:\Users\sivagee\Desktop\IMAGE\all_image\'</span>;         <span class="comment">% change the path to where folder of data base is stored</span>
+fname = [thepath <span class="string">'/'</span> test_img_name <span class="string">'.jpg'</span>];
+test_img = imread(fname);
+figure()
+imshow(test_img)
+test_img = rgb2gray(test_img);                   <span class="comment">% Pre-processing</span>
+test_img = reshape(imresize(test_img,[112 92]),92*112 ,1);
+
+zero_mean_test_img = double(test_img) - psi;
+
+Proj_test = w' *zero_mean_test_img;             <span class="comment">% PCA components of test image</span>
+Test_proj_img = w*Proj_test;                    <span class="comment">% reconstructed image</span>
+figure()
+
+imshow(reshape(Test_proj_img+psi,112,92),[0 255])
+title(<span class="string">'Projected Image to be matched with stored data'</span>)
+
+MSE_arr = zeros([1 size(pcaProj,2) ]);
+<span class="keyword">for</span> i = 1:size(pcaProj,2)
+   MSE_arr(i) =  (sum((pcaProj(:,i) - Proj_test).^2))/size(pcaProj,1);     <span class="comment">% Mean square error calculation</span>
+<span class="keyword">end</span>
+[~,index] = min(MSE_arr);                                                  <span class="comment">% final image will be one with min MSE</span>
+fprintf(<span class="string">'Our image is %d'</span>,index)
+load <span class="string">DATA</span>
+figure()
+
+imshow(reshape(DATA(:,index),112,92),[0 255])
+title(<span class="string">'Recognised face'</span>)
+</pre><pre class="codeoutput"> 
+Zero mean
+PCA
+Normalising
+Creating lower dimensional subspace
+Projecting all images onto a new lower dimensional subspace
+Our image is 237</pre><img vspace="5" hspace="5" src="face_recognition_01.png" alt=""> <img vspace="5" hspace="5" src="face_recognition_02.png" alt=""> <img vspace="5" hspace="5" src="face_recognition_03.png" alt=""> <p class="footer"><br>
+      Published with MATLAB&reg; 7.9<br></p></div><!--
+##### SOURCE BEGIN #####
+clc
+close all
+
+subdim = 100 ;                                % 100 is the subdim chosen. can be varied
+PCA_recog(subdim);                            % calling PCA_recog to create projections (pcaProj) of database images
+
+load psi;                                     % mean face
+load w;                                       % lower dimentional projection space
+load pcaProj;                                 
+
+test_img_name = 'mj2' ;                         % Name of the test image
+thepath = 'C:\Users\sivagee\Desktop\IMAGE\all_image\';         % change the path to where folder of data base is stored
+fname = [thepath '/' test_img_name '.jpg'];
+test_img = imread(fname);                         
+figure()
+imshow(test_img)
+test_img = rgb2gray(test_img);                   % Pre-processing 
+test_img = reshape(imresize(test_img,[112 92]),92*112 ,1);
+
+zero_mean_test_img = double(test_img) - psi;
+
+Proj_test = w' *zero_mean_test_img;             % PCA components of test image
+Test_proj_img = w*Proj_test;                    % reconstructed image
+figure()
+
+imshow(reshape(Test_proj_img+psi,112,92),[0 255])
+title('Projected Image to be matched with stored data')
+
+MSE_arr = zeros([1 size(pcaProj,2) ]);
+for i = 1:size(pcaProj,2)
+   MSE_arr(i) =  (sum((pcaProj(:,i) - Proj_test).^2))/size(pcaProj,1);     % Mean square error calculation 
+end
+[~,index] = min(MSE_arr);                                                  % final image will be one with min MSE
+fprintf('Our image is %d',index) 
+load DATA
+figure()
+
+imshow(reshape(DATA(:,index),112,92),[0 255])
+title('Recognised face')
+##### SOURCE END #####
+--></body></html>
